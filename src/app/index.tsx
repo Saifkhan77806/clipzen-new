@@ -1,6 +1,13 @@
 import { requireNativeModule } from "expo-modules-core";
 import { useCallback, useEffect, useState } from "react";
-import { AppState, StyleSheet, Text, useColorScheme, View } from "react-native";
+import {
+  AppState,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
+
 const ClipzenNative = requireNativeModule("ClipzenNative");
 
 type ClipboardEvent = {
@@ -8,39 +15,147 @@ type ClipboardEvent = {
 };
 
 export default function Index() {
-  const [clipboardText, setClipboardText] = useState<string | null>(null);
+  const [clipboardText, setClipboardText] =
+    useState<string | null>(null);
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const refreshClipboard = useCallback(() => {
-  const current = ClipzenNative.getCurrentClipboard();
+    const current =
+      ClipzenNative.getCurrentClipboard();
+
     if (current) {
       setClipboardText(current);
     }
   }, []);
 
   useEffect(() => {
-    // 1. Live changes while the app is focused
-    const subscription = ClipzenNative.addListener(
-      "onClipboardChanged",
-      (event: ClipboardEvent) => setClipboardText(event.text),
-    );
+    // -------------------------------------------------------------------------
+    // Clipboard
+    // -------------------------------------------------------------------------
 
-    // 2. Initial read
+    const subscription =
+      ClipzenNative.addListener(
+        "onClipboardChanged",
+        (event: ClipboardEvent) => {
+          setClipboardText(event.text);
+        },
+      );
+
+    // -------------------------------------------------------------------------
+    // WebSocket connected
+    // -------------------------------------------------------------------------
+
+    const webSocketConnectedSubscription =
+      ClipzenNative.addListener(
+        "onWebSocketConnected",
+        () => {
+          console.log(
+            "CLIPZEN: WebSocket connected",
+          );
+        },
+      );
+
+    // -------------------------------------------------------------------------
+    // WebSocket message
+    // -------------------------------------------------------------------------
+
+    const webSocketMessageSubscription =
+      ClipzenNative.addListener(
+        "onWebSocketMessage",
+        (event: { text: string }) => {
+          console.log(
+            "CLIPZEN: WebSocket message:",
+            event.text,
+          );
+        },
+      );
+
+    // -------------------------------------------------------------------------
+    // WebSocket disconnected
+    // -------------------------------------------------------------------------
+
+    const webSocketDisconnectedSubscription =
+      ClipzenNative.addListener(
+        "onWebSocketDisconnected",
+        (event: {
+          code: number;
+          reason: string;
+        }) => {
+          console.log(
+            "CLIPZEN: WebSocket disconnected:",
+            event.code,
+            event.reason,
+          );
+        },
+      );
+
+    // -------------------------------------------------------------------------
+    // WebSocket error
+    // -------------------------------------------------------------------------
+
+    const webSocketErrorSubscription =
+      ClipzenNative.addListener(
+        "onWebSocketError",
+        (event: { message: string }) => {
+          console.log(
+            "CLIPZEN: WebSocket error:",
+            event.message,
+          );
+        },
+      );
+
+    // -------------------------------------------------------------------------
+    // Initial clipboard
+    // -------------------------------------------------------------------------
+
     refreshClipboard();
 
-    // 3. Re-read when the app returns to the foreground
-    const appStateSub = AppState.addEventListener("change", (state) => {
-      if (state === "active") {
-        // small delay: window focus isn't always granted the instant the app is "active"
-        setTimeout(refreshClipboard, 300);
-      }
-    });
+    // -------------------------------------------------------------------------
+    // Connect to CLIPZEN server
+    // -------------------------------------------------------------------------
+
+    ClipzenNative.connectToServer(
+      "ws://10.58.232.138:8080",
+      "android-test-02",
+    );
+
+    // -------------------------------------------------------------------------
+    // Refresh clipboard when app comes to foreground
+    // -------------------------------------------------------------------------
+
+    const appStateSub =
+      AppState.addEventListener(
+        "change",
+        (state) => {
+          if (state === "active") {
+            setTimeout(
+              refreshClipboard,
+              300,
+            );
+          }
+        },
+      );
+
+    // -------------------------------------------------------------------------
+    // Cleanup
+    // -------------------------------------------------------------------------
 
     return () => {
       subscription.remove();
+
       appStateSub.remove();
+
+      webSocketConnectedSubscription.remove();
+
+      webSocketMessageSubscription.remove();
+
+      webSocketDisconnectedSubscription.remove();
+
+      webSocketErrorSubscription.remove();
+
+      ClipzenNative.disconnectFromServer();
     };
   }, [refreshClipboard]);
 
@@ -49,7 +164,10 @@ export default function Index() {
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? "#000000" : "#FFFFFF",
+          backgroundColor:
+            isDark
+              ? "#000000"
+              : "#FFFFFF",
         },
       ]}
     >
@@ -57,7 +175,10 @@ export default function Index() {
         style={[
           styles.title,
           {
-            color: isDark ? "#FFFFFF" : "#000000",
+            color:
+              isDark
+                ? "#FFFFFF"
+                : "#000000",
           },
         ]}
       >
@@ -68,7 +189,10 @@ export default function Index() {
         style={[
           styles.label,
           {
-            color: isDark ? "#CCCCCC" : "#444444",
+            color:
+              isDark
+                ? "#CCCCCC"
+                : "#444444",
           },
         ]}
       >
@@ -79,11 +203,15 @@ export default function Index() {
         style={[
           styles.clipboardText,
           {
-            color: isDark ? "#FFFFFF" : "#000000",
+            color:
+              isDark
+                ? "#FFFFFF"
+                : "#000000",
           },
         ]}
       >
-        {clipboardText ?? "Nothing copied yet"}
+        {clipboardText ??
+          "Nothing copied yet"}
       </Text>
     </View>
   );
