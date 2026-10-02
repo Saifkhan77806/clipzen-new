@@ -14,7 +14,7 @@ export default function Index() {
   const isDark = colorScheme === "dark";
 
   const refreshClipboard = useCallback(() => {
-    const current = ClipzenNative.getCurrentClipboard();
+  const current = ClipzenNative.getCurrentClipboard();
     if (current) {
       setClipboardText(current);
     }

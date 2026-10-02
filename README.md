@@ -54,3 +54,8 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+https://fastify.dev/docs/latest/Reference/TypeScript/?utm_source=chatgpt.com
+https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/?utm_source=chatgpt.com
+https://github.com/fastify/fastify-websocket?utm_source=chatgpt.com
+https://zod.dev/?utm_source=chatgpt.com
